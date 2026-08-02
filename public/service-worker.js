@@ -6,6 +6,13 @@ const CACHE_VERSION = `${CACHE_PREFIX}${RELEASE.version}`;
 const APP_ROUTES = ['/', '/accounts', '/categories', '/transactions', '/budgets', '/saving-goals', '/planner', '/habits', '/reports', '/backup', '/settings'];
 const STATIC_ASSETS = ['/offline.html', '/manifest.webmanifest', '/release.json', '/app-version.js', '/icons/rumahkas.svg', '/icons/rumahkas-192.png', '/icons/rumahkas-512.png', '/icons/rumahkas-maskable-512.png'];
 
+async function cachedNavigationFallback(request) {
+    const url = new URL(request.url);
+    return (await caches.match(request, { ignoreSearch: true }))
+        || (await caches.match(url.pathname, { ignoreSearch: true }))
+        || (await caches.match('/offline.html'));
+}
+
 async function cacheApplicationShell() {
     const cache = await caches.open(CACHE_VERSION); const urls = [...APP_ROUTES, ...STATIC_ASSETS];
     const response = await fetch('/build/manifest.json', { cache: 'no-store' });
@@ -31,7 +38,14 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url); if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return;
     if (event.request.mode === 'navigate') {
-        event.respondWith(fetch(event.request).then((response) => { if (response.ok) caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, response.clone())); return response; }).catch(async () => (await caches.match(event.request, { ignoreSearch: true })) || (await caches.match('/offline.html')))); return;
+        event.respondWith(fetch(event.request).then(async (response) => {
+            if (response.ok) {
+                caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, response.clone()));
+                return response;
+            }
+            if (response.status >= 500) return (await cachedNavigationFallback(event.request)) || response;
+            return response;
+        }).catch(() => cachedNavigationFallback(event.request))); return;
     }
     event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => { if (response.ok) caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, response.clone())); return response; })));
 });

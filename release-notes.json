@@ -1,11 +1,9 @@
 {
-    "released_at": "2026-08-02T12:00:00+07:00",
+    "released_at": "2026-08-02T17:35:00+07:00",
     "required": false,
     "minimum_version": "0.9.0",
     "notes": [
-        "Mengubah Habit Tracker menjadi kartu kalender per habit.",
-        "Menampilkan seluruh checklist tanggal dalam satu kalender mini 7 kolom.",
-        "Menghilangkan scroll horizontal dan pilihan minggu.",
-        "Menampilkan progress, jumlah selesai, dan streak pada setiap kartu habit."
+        "Tetap membuka aplikasi dari cache saat server atau Cloudflare mengembalikan error 5xx.",
+        "Memperkuat fallback navigasi PWA untuk kondisi internet aktif tetapi origin tidak tersedia."
     ]
 }

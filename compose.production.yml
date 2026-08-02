@@ -6,6 +6,7 @@ services:
       context: .
       target: application
     image: rumahkas-app:${APP_VERSION:-latest}
+    pull_policy: build
     env_file:
       - .env.production
     restart: unless-stopped
@@ -27,6 +28,7 @@ services:
       context: .
       target: web
     image: rumahkas-web:${APP_VERSION:-latest}
+    pull_policy: build
     restart: unless-stopped
     init: true
     depends_on:

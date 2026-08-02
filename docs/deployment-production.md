@@ -85,6 +85,24 @@ docker compose --env-file .env.production -f compose.production.yml ps
 curl --fail --head http://127.0.0.1:8080/up
 ```
 
+`rumahkas-app` dan `rumahkas-web` adalah image lokal yang dibangun dari repository,
+bukan image Docker Hub. Jika CasaOS menampilkan `pull access denied`, jangan login
+ke Docker Hub. Jalankan build dari folder source:
+
+```bash
+docker compose --env-file .env.production -f compose.production.yml build --pull app web
+docker image ls | grep rumahkas
+docker compose --env-file .env.production -f compose.production.yml up -d
+```
+
+Builder frontend memakai Node Debian/glibc dan `npm ci --include=optional` agar
+binary native Lightning CSS tersedia pada server CasaOS. Jika sebelumnya build
+Alpine gagal pada `lightningcss.*-musl.node`, tarik commit terbaru dan build ulang
+dengan `--no-cache`.
+
+Gunakan terminal/SSH untuk stack ini; import Compose pada UI CasaOS dapat mencoba
+menarik semua nilai `image:` dari registry dan tidak selalu menjalankan build context.
+
 Entrypoint aplikasi menunggu MySQL, menjalankan migration, lalu membuat cache
 konfigurasi, route, event, dan view. Buat admin pertama satu kali:
 

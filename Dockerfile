@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-alpine AS frontend
+# Gunakan glibc untuk builder native frontend. Sebagian instalasi Docker/CasaOS
+# melewatkan binary optional lightningcss pada Alpine/musl.
+FROM node:22-bookworm-slim AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=optional
 COPY resources ./resources
 COPY public ./public
 COPY scripts ./scripts

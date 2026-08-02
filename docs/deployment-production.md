@@ -108,7 +108,7 @@ konfigurasi, route, event, dan view. Buat admin pertama satu kali:
 
 ```bash
 docker compose --env-file .env.production -f compose.production.yml exec app \
-  php artisan app:create-admin
+  php artisan admin:create
 ```
 
 ## 3. Hubungkan Cloudflare Tunnel

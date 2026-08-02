@@ -27,6 +27,14 @@ test('models receive UUID automatically', function () {
     expect($user->uuid)->toBeUuid()->and($product->uuid)->toBeUuid();
 });
 
+test('production seeder provides the default active license product idempotently', function () {
+    $this->seed();
+    $this->seed();
+
+    expect(Product::where('code', 'rumahkas-lifetime')->count())->toBe(1)
+        ->and(Product::where('code', 'rumahkas-lifetime')->where('is_active', true)->exists())->toBeTrue();
+});
+
 test('admin pages require the separate admin guard', function () {
     $this->get('/admin')->assertRedirect(route('admin.login'));
     $this->get('/admin/users')->assertRedirect(route('admin.login'));

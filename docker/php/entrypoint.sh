@@ -29,6 +29,7 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R www-data:www-data storage bootstrap/cache
 
 php artisan migrate --force --no-interaction
+php artisan db:seed --force --no-interaction
 php artisan optimize:clear
 php artisan config:cache
 php artisan event:cache
@@ -36,4 +37,3 @@ php artisan route:cache
 php artisan view:cache
 
 exec "$@"
-

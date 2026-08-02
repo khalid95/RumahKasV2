@@ -1,0 +1,19 @@
+import { db } from '../database/database';
+import { createEntity, updateEntity } from '../database/entity';
+
+const PERIODS = ['morning', 'afternoon', 'evening']; const PRIORITIES = ['low', 'normal', 'high'];
+export class PlannerValidationError extends Error { constructor(message, field = null) { super(message); this.name = 'PlannerValidationError'; this.field = field; } }
+const validDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || '') && !Number.isNaN(new Date(`${value}T00:00:00`).getTime());
+
+export class PlannerService {
+    constructor(database = db) { this.db = database; }
+    async list(date) { if (!validDate(date)) throw new PlannerValidationError('Tanggal planner tidak valid.'); return (await this.db.planner_tasks.where('[profile_id+task_date]').equals(['default-profile', date]).toArray()).sort((a, b) => a.sort_order - b.sort_order || (a.time || '99:99').localeCompare(b.time || '99:99') || a.created_at.localeCompare(b.created_at)); }
+    find(id) { return this.db.planner_tasks.get(id); }
+    validate(input) { const title = String(input.title || '').trim().replace(/\s+/g, ' '); if (!title) throw new PlannerValidationError('Judul aktivitas wajib diisi.', 'title'); if (title.length > 100) throw new PlannerValidationError('Judul maksimal 100 karakter.', 'title'); if (!validDate(input.task_date)) throw new PlannerValidationError('Tanggal aktivitas tidak valid.', 'task_date'); if (!PERIODS.includes(input.day_period)) throw new PlannerValidationError('Waktu aktivitas tidak valid.', 'day_period'); if (!PRIORITIES.includes(input.priority || 'normal')) throw new PlannerValidationError('Prioritas tidak valid.', 'priority'); if (input.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(input.time)) throw new PlannerValidationError('Jam aktivitas tidak valid.', 'time'); return { title, task_date: input.task_date, time: input.time || null, day_period: input.day_period, priority: input.priority || 'normal', notes: String(input.notes || '').trim().slice(0, 500) || null }; }
+    async create(input) { const data = this.validate(input); const count = await this.db.planner_tasks.where('[profile_id+task_date]').equals(['default-profile', data.task_date]).count(); const item = createEntity({ ...data, profile_id: 'default-profile', is_completed: 0, completed_at: null, sort_order: count, repeat_rule: null }); await this.db.transaction('rw', this.db.planner_tasks, this.db.audit_logs, async () => { await this.db.planner_tasks.add(item); await this.audit(item.id, 'planner_task.created'); }); return item; }
+    async update(id, input) { const existing = await this.find(id); if (!existing) throw new PlannerValidationError('Aktivitas tidak ditemukan.'); const data = this.validate({ ...existing, ...input }); await this.db.planner_tasks.put(updateEntity({ ...existing, ...data })); return this.find(id); }
+    async toggle(id, completed) { const item = await this.find(id); if (!item) throw new PlannerValidationError('Aktivitas tidak ditemukan.'); await this.db.planner_tasks.put(updateEntity({ ...item, is_completed: completed ? 1 : 0, completed_at: completed ? new Date().toISOString() : null })); return this.find(id); }
+    async moveTomorrow(id) { const item = await this.find(id); if (!item) throw new PlannerValidationError('Aktivitas tidak ditemukan.'); const next = new Date(`${item.task_date}T12:00:00`); next.setDate(next.getDate() + 1); await this.db.planner_tasks.put(updateEntity({ ...item, task_date: next.toLocaleDateString('en-CA'), is_completed: 0, completed_at: null })); return this.find(id); }
+    async delete(id) { await this.db.transaction('rw', this.db.planner_tasks, this.db.audit_logs, async () => { await this.db.planner_tasks.delete(id); await this.audit(id, 'planner_task.deleted'); }); }
+    audit(id, action) { return this.db.audit_logs.add(createEntity({ entity_type: 'planner_task', entity_id: id, action })); }
+}

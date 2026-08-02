@@ -1,0 +1,57 @@
+name: rumahkas
+
+services:
+  app:
+    build:
+      context: .
+      target: application
+    image: rumahkas-app:${APP_VERSION:-latest}
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ${APP_DATA_PATH:-/DATA/AppData/rumahkas}/storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      target: web
+    image: rumahkas-web:${APP_VERSION:-latest}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    stop_grace_period: 60s
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?Isi DB_DATABASE di .env.production}
+      MYSQL_USER: ${DB_USERNAME:?Isi DB_USERNAME di .env.production}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Isi DB_PASSWORD di .env.production}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Isi DB_ROOT_PASSWORD di .env.production}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ${APP_DATA_PATH:-/DATA/AppData/rumahkas}/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

@@ -1,0 +1,38 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "version": "0.15.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "node scripts/prepare-release.mjs && vite build",
+        "dev": "vite",
+        "test:js": "vitest run"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.12",
+        "axios": "^1.11.0",
+        "concurrently": "^9.0.1",
+        "fake-indexeddb": "^6.2.5",
+        "laravel-vite-plugin": "^2.0.0",
+        "tailwindcss": "^4.1.12",
+        "vite": "^7.0.4",
+        "vitest": "^4.1.10"
+    },
+    "dependencies": {
+        "@floating-ui/dom": "^1.7.4",
+        "@fullcalendar/core": "^6.1.19",
+        "@fullcalendar/daygrid": "^6.1.19",
+        "@fullcalendar/interaction": "^6.1.19",
+        "@fullcalendar/list": "^6.1.19",
+        "@fullcalendar/timegrid": "^6.1.19",
+        "@popperjs/core": "^2.11.8",
+        "alpinejs": "^3.14.9",
+        "apexcharts": "^5.3.5",
+        "dexie": "^4.4.4",
+        "flatpickr": "^4.6.13",
+        "jquery": "^3.7.1",
+        "jsvectormap": "^1.7.0",
+        "prismjs": "^1.30.0",
+        "swiper": "^12.0.3"
+    }
+}

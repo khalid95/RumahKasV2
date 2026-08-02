@@ -59,8 +59,8 @@ chmod 600 .env.production
 Buat secret acak. Perintah berikut hanya mencetak nilai dan tidak menyimpannya:
 
 ```bash
-docker run --rm php:8.3-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
-docker run --rm php:8.3-cli php -r "echo bin2hex(random_bytes(32)).PHP_EOL;"
+docker run --rm php:8.4-cli php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+docker run --rm php:8.4-cli php -r "echo bin2hex(random_bytes(32)).PHP_EOL;"
 ```
 
 Isi `.env.production`:

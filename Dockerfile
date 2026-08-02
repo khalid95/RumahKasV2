@@ -12,7 +12,7 @@ COPY scripts ./scripts
 COPY vite.config.js release-notes.json ./
 RUN npm run build
 
-FROM php:8.3-fpm-alpine AS php-base
+FROM php:8.4-fpm-alpine AS php-base
 RUN apk add --no-cache icu-libs libzip oniguruma \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev libzip-dev oniguruma-dev \
     && docker-php-ext-install -j"$(nproc)" bcmath intl mbstring opcache pdo_mysql zip \
